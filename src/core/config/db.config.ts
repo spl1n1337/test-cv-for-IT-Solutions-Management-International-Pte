@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config';
 import { ENV } from './constans/env.constants.js';
 
+// q
 export default registerAs('db', () => ({
   url:
     process.env[ENV.POSTGRES_URI] ??
