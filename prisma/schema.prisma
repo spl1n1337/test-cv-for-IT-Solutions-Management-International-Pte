@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "cockroachdb"
+}
+
+model Profile {
+  id String @id @default(uuid())
+
+  name        String
+  description String
+  links       Link[]
+  skills      Skill[]
+  projects    Project[]
+  experience  Experience[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model Link {
+  id String @id @default(uuid())
+
+  label String
+  url   String
+
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("links")
+}
+
+model Skill {
+  id String @id @default(uuid())
+
+  name String @unique
+
+  profile Profile[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("skills")
+}
+
+model Project {
+  id String @id @default(uuid())
+
+  name        String
+  description String
+  url         String?
+
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+model Experience {
+  id String @id @default(uuid())
+
+  company      String
+  position     String
+  period       String
+  achievements String[]
+
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("experiences")
+}

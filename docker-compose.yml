@@ -1,0 +1,48 @@
+services:
+  db:
+    image: cockroachdb/cockroach:v26.4.0
+    restart: unless-stopped
+    command: start-single-node --insecure
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - crdbdata:/cockroach/cockroach-data
+    healthcheck:
+      test: ["CMD", "cockroach", "sql", "--insecure", "-e", "SELECT 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  db-init:
+    image: cockroachdb/cockroach:v26.4.0
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        cockroach sql --insecure --host=db --port=26257 \
+          -e "SET CLUSTER SETTING sql.defaults.create_table_with_schema_locked = false;"
+        cockroach sql --insecure --host=db --port=26257 \
+          -e "CREATE DATABASE IF NOT EXISTS test_db;"
+
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: ${HTTP_PORT}
+      POSTGRES_URI: postgresql://root@db:26257/test_db?sslmode=disable
+      GRPAPHQL_PREFIX: /graphql
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+
+volumes:
+  crdbdata:

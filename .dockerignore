@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+.git
+.github
+.idea
+.vscode
+.DS_Store
+*.log
+*.tsbuildinfo
+.env
+.env.*
+prisma/generated
